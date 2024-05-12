@@ -1,0 +1,14 @@
+{
+    "sender_email": "sender@mail.com",
+    "receiver_email": "receiver1@mail.com",
+    "smtp_server": "smtp.mail.com",
+    "smtp_port": "587 for starttls, 465 for ssl",
+    "password": "password",
+    "ssid": "wifiname",
+    "wifipasswd": "password",
+    "heatpump_ip": "0.0.0.0",
+    "heatpump_port": "usually 8889",
+    "min_temp": "21.6",
+    "max_temp": "21.9",
+    "place": "livingroom"
+}
