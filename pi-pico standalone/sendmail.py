@@ -108,7 +108,7 @@ class SendMail:
             self.body += "vypnuto"
 
         if not self.hp_status:
-            self.bady += "Čerpadlo nedostupné"
+            self.body += "Čerpadlo nedostupné"
 
         self.body += "\n\nData:\n\n"
         self.body += makegraph(path=file, col=28, data=data)
