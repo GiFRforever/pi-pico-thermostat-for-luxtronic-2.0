@@ -28,6 +28,7 @@ class SendMail:
         try:
             self.hp = HeatPump()
         except Exception:
+            print("HeatPump not available")
             self.hp_status = False
         else:
             self.hp_status = True
@@ -108,7 +109,7 @@ class SendMail:
             self.body += "vypnuto"
 
         if not self.hp_status:
-            self.body += "Čerpadlo nedostupné"
+            self.body += "\nČerpadlo nedostupné"
 
         self.body += "\n\nData:\n\n"
         self.body += makegraph(path=file, col=28, data=data)
@@ -128,7 +129,7 @@ class SendMail:
         except:
             return False
         finally:
-            if control:
+            if self.hp_status and control:
                 if avg <= lower_bound:
                     # increase temperature
                     self.hp.change_heating_temp_by(0.5)

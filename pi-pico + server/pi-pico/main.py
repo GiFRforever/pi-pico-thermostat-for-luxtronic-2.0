@@ -137,6 +137,7 @@ if __name__ == "__main__":
     try:
         main_logger()
     except Exception as e:
+        wifi.disconnect()
         print(e)
         for _ in range(3):
             led.value(1)
