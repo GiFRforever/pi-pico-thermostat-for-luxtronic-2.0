@@ -124,8 +124,8 @@ def main_logger():
         print(temp, end="\r")
         if now[3:5] == (0, 0):  # midnight
             wifi.connect()
+            offset = ntptime.settime(rtc=rtc, timezone_offset=t_off, daylight_saving_time=dst)
             send_command()
-            offset = ntptime.settime(timezone_offset=t_off, daylight_saving_time=dst)
         if now[4] % 5 == 0:  # every 5 minutes
             with open(f"WIP/{today}", "a") as f:
                 f.write(f"{temp}\n")
