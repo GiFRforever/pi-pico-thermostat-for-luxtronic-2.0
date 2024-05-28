@@ -27,7 +27,13 @@ class SendMail:
         except KeyError:
             raise KeyError("config.json is not valid. Check README.md for more info")
 
-        self.hp = HeatPump()
+        try:
+            self.hp = HeatPump()
+        except Exception:
+            print("HeatPump not available")
+            self.hp_status = False
+        else:
+            self.hp_status = True
 
     def send_mail(
         self,
@@ -41,6 +47,7 @@ class SendMail:
         if upper_bound is None:
             upper_bound = self.max_temp
         control_pass: bool = control
+
         if file.endswith((".csv", ".xlsx")):
             return True
         picturemaker.make_picture((picturepath := file))
@@ -62,8 +69,9 @@ class SendMail:
             f"""Průměrná teplota byla {avg} °C
             Nejvyšší teplota {maxTemp} °C v {maxTempCas}
             Nejnižší teplota {minTemp} °C v {minTempCas}
-            Data jsou v příloze
-            Ovládání {"zapnuto" if control_pass else "vypnuto"}"""
+            Ovládání {"zapnuto" if control_pass else "vypnuto"}
+            {"Čerpadlo není dostupné" if not self.hp_status else ""}
+            Data jsou v příloze"""
         )
 
         file += ".xlsx"  # add extension
@@ -133,7 +141,7 @@ class SendMail:
         except:
             return False
         finally:
-            if control:
+            if control and self.hp_status:
                 if avg <= lower_bound:
                     # increase temperature
                     self.hp.change_heating_temp_by(0.5)
