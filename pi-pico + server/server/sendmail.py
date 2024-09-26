@@ -20,7 +20,7 @@ class SendMail:
             self.sender_email: str = config["sender_email"]
             self.receiver_email: str = config["receiver_email"]
             self.smtp_server: str = config["smtp_server"]
-            self.port: int = config["smtp_port"]
+            self.port: int = int(config["smtp_port"])
             self.min_temp: float = float(config["min_temp"])
             self.max_temp: float = float(config["max_temp"])
 
@@ -39,13 +39,17 @@ class SendMail:
         self,
         file: str,
         control: bool = False,
-        lower_bound: float = None,
-        upper_bound: float = None,
+        lower_bound_in: float | None = None,
+        upper_bound_in: float | None = None,
     ) -> bool:
-        if lower_bound is None:
-            lower_bound = self.min_temp
-        if upper_bound is None:
-            upper_bound = self.max_temp
+        if lower_bound_in is None:
+            lower_bound: float = self.min_temp
+        else:
+            lower_bound = lower_bound_in
+        if upper_bound_in is None:
+            upper_bound: float = self.max_temp
+        else:
+            upper_bound = upper_bound_in
         control_pass: bool = control
 
         if file.endswith((".csv", ".xlsx")):
