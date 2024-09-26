@@ -1,4 +1,10 @@
-import smtplib, ssl, excelmaker, os, json, picturemaker, time
+import smtplib
+import ssl
+import excelmaker
+import os
+import json
+import picturemaker
+import time
 
 from hpcontrol import HeatPump
 from email import encoders
@@ -11,7 +17,7 @@ class SendMail:
     def __init__(self) -> None:
         try:  # load config
             with open("config.json", "r") as f:
-                config = json.load(f)
+                config: dict[str, str] = json.load(f)
         except FileNotFoundError:
             raise FileNotFoundError("config.json not found")
 
@@ -69,14 +75,12 @@ class SendMail:
         filename: str = file.split("/")[-1]  # exract filename from path
 
         self.subject: str = f"""Teploty z {". ".join(filename.split("-")[::-1])}"""
-        self.body: str = (
-            f"""Průměrná teplota byla {avg} °C
+        self.body: str = f"""Průměrná teplota byla {avg} °C
             Nejvyšší teplota {maxTemp} °C v {maxTempCas}
             Nejnižší teplota {minTemp} °C v {minTempCas}
             Ovládání {"zapnuto" if control_pass else "vypnuto"}
             {"Čerpadlo není dostupné" if not self.hp_status else ""}
             Data jsou v příloze"""
-        )
 
         file += ".xlsx"  # add extension
         filename: str = file.split("/")[-1]  # exract filename from path
@@ -127,7 +131,7 @@ class SendMail:
 
         try:
             with smtplib.SMTP(self.smtp_server, self.port) as server:
-                context: ssl.SSLContext | None = ssl.create_default_context()
+                # context: ssl.SSLContext | None = ssl.create_default_context()
                 if self.port == 587:
                     server.starttls(context=context)
 
@@ -137,12 +141,13 @@ class SendMail:
                         # for receiver in self.receiver_email: brakes for some reason
                         server.sendmail(self.sender_email, self.receiver_email, text)
                         break
-                    except:
-                        time.sleep(11 * i)
+                    except Exception:
+                        time.sleep(1)
+                        print("Something went wrong, retrying")
                 os.replace(file, f"LOGGED/{filename}")  # move excel file
                 os.remove(picturepath + ".png")  # remove picturepath
                 return True
-        except:
+        except Exception:
             return False
         finally:
             if control and self.hp_status:
@@ -156,12 +161,17 @@ class SendMail:
 
 if __name__ == "__main__":
     try:
+        os.chdir("pi-pico + server\\server")
         for file in os.listdir("WIP"):
             try:
-                if not file.endswith(".xlsx") or not file.endswith(".png"):
+                if not file.endswith(".xlsx") and not file.endswith(".png"):
                     if SendMail().send_mail(f"WIP/{file}"):
                         print(f"Email sent for {file}")
-            except:
-                print(f"Email not sent for {file}")
+                    else:
+                        print(f"Failed to send email for {file}")
+                else:
+                    print(f"Email not sent for {file}")
+            except Exception:
+                print(f"Email failed to sent for {file}")
     except FileNotFoundError:
         print("WIP folder not found")

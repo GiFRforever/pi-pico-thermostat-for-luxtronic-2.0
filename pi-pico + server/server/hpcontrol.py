@@ -7,13 +7,13 @@ class HeatPump:
     def __init__(self):
         try:  # load config
             with open("config.json", "r") as f:
-                config = json.load(f)
+                config: dict[str, str] = json.load(f)
         except FileNotFoundError:
             raise FileNotFoundError("config.json not found")
 
         try:
             self.ip: str = config["heatpump_ip"]
-            self.port: int = config["heatpump_port"]
+            self.port: int = int(config["heatpump_port"])
         except KeyError:
             raise KeyError("config.json is not valid. Check README.md for more info")
 
