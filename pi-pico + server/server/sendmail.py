@@ -131,7 +131,7 @@ class SendMail:
 
         try:
             with smtplib.SMTP(self.smtp_server, self.port) as server:
-                # context: ssl.SSLContext | None = ssl.create_default_context()
+                context: ssl.SSLContext | None = ssl.create_default_context()
                 if self.port == 587:
                     server.starttls(context=context)
 
@@ -141,13 +141,12 @@ class SendMail:
                         # for receiver in self.receiver_email: brakes for some reason
                         server.sendmail(self.sender_email, self.receiver_email, text)
                         break
-                    except Exception:
-                        time.sleep(1)
-                        print("Something went wrong, retrying")
+                    except:
+                        time.sleep(11 * i)
                 os.replace(file, f"LOGGED/{filename}")  # move excel file
                 os.remove(picturepath + ".png")  # remove picturepath
                 return True
-        except Exception:
+        except:
             return False
         finally:
             if control and self.hp_status:
@@ -161,7 +160,6 @@ class SendMail:
 
 if __name__ == "__main__":
     try:
-        os.chdir("pi-pico + server\\server")
         for file in os.listdir("WIP"):
             try:
                 if not file.endswith(".xlsx") and not file.endswith(".png"):
