@@ -75,11 +75,11 @@ class SendMail:
 
         self.subject: str = f"""Teploty z {". ".join(filename.split("-")[::-1])}"""
         self.body: str = f"""Průměrná teplota byla {avg} °C
-            Nejvyšší teplota {maxTemp} °C v {maxTempCas}
-            Nejnižší teplota {minTemp} °C v {minTempCas}
-            Ovládání {"zapnuto" if control_pass else "vypnuto"}
-            {"Čerpadlo není dostupné" if not self.hp_status else ""}
-            Data jsou v příloze"""
+Nejvyšší teplota {maxTemp} °C v {maxTempCas}
+Nejnižší teplota {minTemp} °C v {minTempCas}
+Ovládání {"zapnuto" if control_pass else "vypnuto"}
+{"Čerpadlo není dostupné" if not self.hp_status else ""}
+Data jsou v příloze"""
 
         file += ".xlsx"  # add extension
         filename: str = file.split("/")[-1]  # exract filename from path
