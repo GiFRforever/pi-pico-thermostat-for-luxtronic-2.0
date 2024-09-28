@@ -18,12 +18,12 @@ def handle_client(cwd, conn, addr) -> None:
                 break
             data.append(packet)
 
-        zasilka = b"".join(data)
-        received_list = zasilka.decode("utf-8")
+        zasilka: bytes = b"".join(data)
+        received_list: str = zasilka.decode("utf-8")
 
         info, rest = received_list.split("\n", 1)
         if info.endswith("HP"):
-            name = info[:-3]
+            name: str = info[:-3]
             hpcontrol = True
         else:
             name = info
@@ -54,10 +54,11 @@ if __name__ == "__main__":
     try:
         for file in os.listdir("WIP"):
             try:
-                if not file.endswith(".xlsx") or not file.endswith(".png"):
-                    if sendmail.SendMail().send_mail(f"WIP/{file}"):
+                if not file.endswith(".xlsx") and not file.endswith(".png"):
+                    if sendmail.SendMail().send_mail(f"{cwd}/WIP/{file}"):
                         print(f"Email sent for {file}")
-            except:
+                        os.rename(f"{cwd}/WIP/{file}", f"{cwd}/LOGGED/{file}.csv")
+            except Exception:
                 print(f"Email not sent for {file}")
     except FileNotFoundError:
         print("WIP folder not found")

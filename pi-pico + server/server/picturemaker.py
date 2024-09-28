@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colorbar import Colorbar
 
 
 def make_picture(
@@ -12,12 +13,12 @@ def make_picture(
     with open(path, "r") as f:
         for line in f.readlines():
             try:
-                cas, tepl = line.split(";")
+                cas, teplota = line.split(";")
                 if cas in casy:
                     continue
-                teploty.append(float(tepl))
+                teploty.append(float(teplota))
                 casy.append(cas)
-            except:
+            except ValueError:
                 pass
 
     if casy[0] != "00:00":
@@ -28,7 +29,7 @@ def make_picture(
         casy.append("23:55")
         teploty.append(teploty[-1])
 
-    data = {"Time": casy, "Temperature": teploty}
+    data: dict[str, list] = {"Time": casy, "Temperature": teploty}
 
     # Create a DataFrame
     df = pd.DataFrame(data)
@@ -43,29 +44,44 @@ def make_picture(
     df.set_index("Time", inplace=True)
 
     # Resample the data to fill in missing time points
-    df_resampled = df.resample("5min").asfreq()
+    df_resampled: pd.DataFrame = df.resample("5min").asfreq()
 
     # Interpolate missing values
     df_resampled["Temperature"] = df_resampled["Temperature"].interpolate()
 
     # Apply rolling average with a smaller window size and center=False
-    df_smoothed = df_resampled.rolling(window=3, center=False).mean()
+    df_smoothed: pd.DataFrame = df_resampled.rolling(window=3, center=False).mean()
 
     # Define custom colormap
-    cmap_colors = [(0, "blue"), (0.2, "purple"), (0.7, "orange"), (1, "red")]
-    custom_cmap = LinearSegmentedColormap.from_list("custom_colormap", cmap_colors)
+    cmap_colors: list[tuple[float, str]] = [
+        (0, "blue"),
+        (0.2, "purple"),
+        (0.7, "orange"),
+        (1, "red"),
+    ]
+    custom_cmap: LinearSegmentedColormap = LinearSegmentedColormap.from_list(
+        "custom_colormap", cmap_colors
+    )
 
     # Normalize temperature values for color mapping
     norm = plt.Normalize(vmin=min, vmax=max)  # type: ignore
 
     try:
-        label = pd.to_datetime(path.split("/")[-1]).strftime("%d. %m. %Y")
-    except:
+        label: str = pd.to_datetime(path.split("/")[-1]).strftime("%d. %m. %Y")
+    except (ValueError, pd.errors.ParserError):
         label = path.split("/")[-1]
 
     # Plotting with color based on Temperature values for smoothed data
     plt.figure(figsize=(10, 6))
-    plt.scatter(df_smoothed.index, df_smoothed["Temperature"], c=df_smoothed["Temperature"], cmap=custom_cmap, norm=norm, label=label, marker="o")  # type: ignore
+    plt.scatter(
+        df_smoothed.index,
+        df_smoothed["Temperature"],
+        c=df_smoothed["Temperature"],
+        cmap=custom_cmap,
+        norm=norm,
+        label=label,
+        marker="o",
+    )
 
     # Customize the plot
     plt.title(name)
@@ -73,10 +89,14 @@ def make_picture(
     plt.ylabel("Temperature (°C)")
 
     # Set fewer x-axis ticks for better readability
-    plt.xticks(df_smoothed.index[::24], df_smoothed.index[::24].strftime("%H:%M"), rotation=45)  # type: ignore
+    plt.xticks(
+        df_smoothed.index[::24],
+        df_smoothed.index[::24].strftime("%H:%M"),  # type: ignore
+        rotation=45,
+    )
 
     # Add colorbar
-    cbar = plt.colorbar()
+    cbar: Colorbar = plt.colorbar()
     cbar.set_label("Temperature (°C)")
 
     plt.legend()

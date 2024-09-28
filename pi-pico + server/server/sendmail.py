@@ -4,7 +4,6 @@ import excelmaker
 import os
 import json
 import picturemaker
-import time
 
 from hpcontrol import HeatPump
 from email import encoders
@@ -60,7 +59,7 @@ class SendMail:
 
         if file.endswith((".csv", ".xlsx")):
             return True
-        picturemaker.make_picture((picturepath := file))
+        picturemaker.make_picture((picturePath := file))
         maxTemp, maxTempCas, minTemp, minTempCas, avg = excelmaker.make_excel(
             file
         )  # make excel file from csv
@@ -101,7 +100,7 @@ class SendMail:
             # Email client can usually download this automatically as attachment
             part: MIMEBase = MIMEBase("application", "octet-stream")
             part.set_payload(attachment.read())
-        with open(picturepath + ".png", "rb") as attachment:
+        with open(picturePath + ".png", "rb") as attachment:
             # Add file as application/octet-stream
             # Email client can usually download this automatically as attachment
             part2: MIMEBase = MIMEBase("application", "octet-stream")
@@ -116,37 +115,37 @@ class SendMail:
         part2.add_header(
             "Content-Disposition",
             "attachment",
-            filename=f"""{picturepath.split("/")[-1]}.png""",
+            filename=f"""{picturePath.split("/")[-1]}.png""",
         )
         # Add attachment to self.message and convert self.message to string
         self.message.attach(part)
         self.message.attach(part2)
         text: str = self.message.as_string()
 
-        if self.port == 465:
-            # Log in to server using secure context and send email
-            context: ssl.SSLContext | None = ssl.create_default_context()
-        else:
-            context = None
+        # Log in to server using secure context and send email
+        context: ssl.SSLContext = ssl.create_default_context()
 
         try:
-            with smtplib.SMTP(self.smtp_server, self.port) as server:
-                context: ssl.SSLContext | None = ssl.create_default_context()
-                if self.port == 587:
+            if self.port == 587:  # starttls
+                with smtplib.SMTP(self.smtp_server, self.port, timeout=5) as server:
                     server.starttls(context=context)
-
-                for i in range(6):
-                    try:
-                        server.login(self.sender_email, self.password)
-                        # for receiver in self.receiver_email: brakes for some reason
-                        server.sendmail(self.sender_email, self.receiver_email, text)
-                        break
-                    except:
-                        time.sleep(11 * i)
-                os.replace(file, f"LOGGED/{filename}")  # move excel file
-                os.remove(picturepath + ".png")  # remove picturepath
-                return True
-        except:
+                    server.login(self.sender_email, self.password)
+                    server.sendmail(self.sender_email, self.receiver_email, text)
+                    os.replace(file, f"LOGGED/{filename}")
+                    os.remove(picturePath + ".png")
+                    return True
+            elif self.port == 465:  # ssl
+                with smtplib.SMTP_SSL(
+                    self.smtp_server, self.port, context=context
+                ) as server:
+                    server.login(self.sender_email, self.password)
+                    server.sendmail(self.sender_email, self.receiver_email, text)
+                    os.replace(file, f"LOGGED/{filename}")
+                    os.remove(picturePath + ".png")
+                    return True
+            else:
+                raise ValueError("Port must be 587 or 465")
+        except smtplib.SMTPException:
             return False
         finally:
             if control and self.hp_status:
