@@ -72,14 +72,20 @@ class SendMail:
 
         # file += ".xlsx"  # add extension
         filename: str = file.split("/")[-1]  # exract filename from path
+        filename_date, *rest = filename.split(".")
+        filename_room = rest[0].replace("_", " ") if rest else ""
 
-        self.subject: str = f"""Teploty z {". ".join(filename.split("-")[::-1])}"""
+        self.subject: str = f"""Teploty z {". ".join(filename_date.split("-")[::-1])}"""
         self.body: str = f"""Průměrná teplota byla {avg} °C
 Nejvyšší teplota {maxTemp} °C v {maxTempCas}
 Nejnižší teplota {minTemp} °C v {minTempCas}
 Ovládání {"zapnuto" if control_pass else "vypnuto"}
 {"Čerpadlo není dostupné" if not self.hp_status else ""}
 Data jsou v příloze"""
+
+        if filename_room:
+            self.subject += f" v místnosti {filename_room}"
+            self.body = f"V místnosti {filename_room}\n" + self.body
 
         file += ".xlsx"  # add extension
         filename: str = file.split("/")[-1]  # exract filename from path
@@ -159,6 +165,7 @@ Data jsou v příloze"""
 
 if __name__ == "__main__":
     try:
+        os.chdir("pi-pico + server/server")
         for file in os.listdir("WIP"):
             try:
                 if not file.endswith(".xlsx") and not file.endswith(".png"):

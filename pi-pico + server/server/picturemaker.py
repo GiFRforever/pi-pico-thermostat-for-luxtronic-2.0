@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.colorbar import Colorbar
 
+import matplotlib
+
+matplotlib.use("agg")
+
 
 def make_picture(
     path: str, name: str = "Teplota", min: float = 19, max: float = 23
@@ -65,11 +69,12 @@ def make_picture(
 
     # Normalize temperature values for color mapping
     norm = plt.Normalize(vmin=min, vmax=max)  # type: ignore
-
+    filename_date, *rest = path.split("/")[-1].split(".")
+    filename_room = rest[0] if rest else ""
     try:
-        label: str = pd.to_datetime(path.split("/")[-1]).strftime("%d. %m. %Y")
+        label: str = pd.to_datetime(filename_date).strftime("%d. %m. %Y")
     except (ValueError, pd.errors.ParserError):
-        label = path.split("/")[-1]
+        label = filename_date
 
     # Plotting with color based on Temperature values for smoothed data
     plt.figure(figsize=(10, 6))
@@ -81,19 +86,20 @@ def make_picture(
         norm=norm,
         label=label,
         marker="o",
-    )
+    )  # type: ignore
 
     # Customize the plot
-    plt.title(name)
+    plt.title(
+        name
+        + (f" v místnosti {filename_room.replace('_', ' ')}" if filename_room else "")
+    )
     plt.xlabel("Time")
     plt.ylabel("Temperature (°C)")
 
     # Set fewer x-axis ticks for better readability
     plt.xticks(
-        df_smoothed.index[::24],
-        df_smoothed.index[::24].strftime("%H:%M"),  # type: ignore
-        rotation=45,
-    )
+        df_smoothed.index[::24], df_smoothed.index[::24].strftime("%H:%M"), rotation=45
+    )  # type: ignore
 
     # Add colorbar
     cbar: Colorbar = plt.colorbar()
@@ -105,6 +111,7 @@ def make_picture(
     # plt.show()
 
     plt.savefig(f"{path}.png", dpi=171.5, bbox_inches="tight")
+    plt.close("all")
 
 
 if __name__ == "__main__":

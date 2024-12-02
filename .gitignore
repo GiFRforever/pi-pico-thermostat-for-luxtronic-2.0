@@ -1,4 +1,4 @@
-pi-pico + server/server/WIP/*
-pi-pico + server/server/LOGGED/*
-pi-pico + server/server/config.json
+WIP/*
+LOGGED/*
+config.json
 __pycache__

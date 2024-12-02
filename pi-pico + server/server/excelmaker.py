@@ -1,8 +1,6 @@
-from openpyxl import Workbook, load_workbook, worksheet
+from openpyxl import Workbook, load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from datetime import datetime
-
-from openpyxl.workbook.child import _WorkbookChild
 
 
 def make_excel(path) -> tuple[float, str, float, str, float]:
@@ -10,7 +8,7 @@ def make_excel(path) -> tuple[float, str, float, str, float]:
     wb: Workbook = load_workbook("TempTemplate.xlsx")
     ws: Worksheet = wb.active  # type: ignore
     # ws.title = filename
-    datum: list[int] = [int(x) for x in filename.split("-")]
+    datum: list[int] = [int(x) for x in filename.split(".")[0].split("-")]
     maxTemp: float = 0
     maxTempCas: str = ""
     minTemp: float = 100

@@ -1,4 +1,5 @@
-import socket, json
+import socket
+import json
 
 try:  # load config
     with open("config.json", "r") as f:
@@ -9,6 +10,7 @@ except FileNotFoundError:
 try:
     server_ip: str = config["server_ip"]
     server_port: int = int(config["server_port"])
+    place: str = config["place"]
 except KeyError:
     raise KeyError("config.json is not valid. Check README.md for more info")
 
@@ -21,10 +23,13 @@ except KeyError:
 def send(file: str, hpcontrol: bool = False):
     global server_ip
     global server_port
+    global place
     # Your list
     with open(file, "r") as f:
         # Convert the list to bytes using pickle
-        zasilka = f"{file.split('/')[-1]}{'.HP' if hpcontrol else ''}\n{f.read()}"
+        zasilka = (
+            f"{file.split('/')[-1]}.{place}{'.HP' if hpcontrol else ''}\n{f.read()}"
+        )
 
     try:
         try:
@@ -42,7 +47,8 @@ def send(file: str, hpcontrol: bool = False):
 
             return True
 
-        except:
+        except Exception as e:
+            print(e)
             # Close the socket
             s.close()  # type: ignore
     except:
@@ -60,5 +66,5 @@ if __name__ == "__main__":
                 print("Success")
             else:
                 print("Failed")
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             print("Failed")
